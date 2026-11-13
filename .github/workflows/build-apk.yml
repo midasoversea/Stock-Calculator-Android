@@ -27,9 +27,9 @@ jobs:
         run: npm install
       - name: Generate Android project
         run: npx cap add android
-      - name: Sync web assets
+      - name: Sync web assets and Splash Screen plugin
         run: npx cap sync android
-      - name: Apply Stock Calculator launcher icon
+      - name: Apply Stock Calculator launcher and splash assets
         run: |
           mkdir -p android/app/src/main/res/mipmap-anydpi android/app/src/main/res/mipmap-anydpi-v26 android/app/src/main/res/drawable android/app/src/main/res/values
           cp android-icons/mipmap-anydpi/ic_launcher.xml android/app/src/main/res/mipmap-anydpi/ic_launcher.xml
@@ -37,6 +37,7 @@ jobs:
           cp android-icons/mipmap-anydpi-v26/ic_launcher.xml android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           cp android-icons/mipmap-anydpi-v26/ic_launcher_round.xml android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
           cp android-icons/drawable/ic_stock_launcher_foreground.xml android/app/src/main/res/drawable/ic_stock_launcher_foreground.xml
+          cp android-icons/drawable/stock_splash.xml android/app/src/main/res/drawable/stock_splash.xml
           cp android-icons/values/stock_icon_colors.xml android/app/src/main/res/values/stock_icon_colors.xml
       - name: Build debug APK
         working-directory: android
