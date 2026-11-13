@@ -93,6 +93,47 @@ jobs:
           print("Application icon and launcher activity icon set to Stock Calculator assets.")
           print("Launcher activities:", ", ".join(launcher_activities))
           PY
+      - name: Set Recent Apps task icon explicitly
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          candidates = list(Path("android/app/src/main/java").rglob("MainActivity.java"))
+          if len(candidates) != 1:
+              raise SystemExit(f"Expected exactly one MainActivity.java, found {len(candidates)}")
+
+          path = candidates[0]
+          source = path.read_text()
+          class_marker = "public class MainActivity extends BridgeActivity {"
+          if class_marker not in source:
+              raise SystemExit("Unexpected MainActivity structure; refusing an unsafe patch")
+
+          if "setTaskDescription(" not in source:
+              imports = """import android.app.ActivityManager;
+          import android.graphics.BitmapFactory;
+          import android.graphics.Color;
+          import android.os.Bundle;
+          """
+              package_end = source.find("\\n")
+              if package_end < 0:
+                  raise SystemExit("Could not locate Java package declaration")
+              source = source[:package_end + 1] + imports + source[package_end + 1:]
+              body = """public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  android.graphics.Bitmap taskIcon = BitmapFactory.decodeResource(
+                      getResources(), R.mipmap.ic_launcher
+                  );
+                  setTaskDescription(new ActivityManager.TaskDescription(
+                      "Stock Calculator", taskIcon, Color.rgb(23, 23, 47)
+                  ));
+              }
+          }"""
+              source = source.replace(class_marker + "}", body)
+              path.write_text(source)
+          print("Recent Apps task description now uses the Stock Calculator launcher icon.")
+          PY
       - name: Build debug APK
         working-directory: android
         run: |
