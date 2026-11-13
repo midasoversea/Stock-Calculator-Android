@@ -39,6 +39,20 @@ jobs:
           cp android-icons/drawable/ic_stock_launcher_foreground.xml android/app/src/main/res/drawable/ic_stock_launcher_foreground.xml
           cp android-icons/drawable/stock_splash.xml android/app/src/main/res/drawable/stock_splash.xml
           cp android-icons/values/stock_icon_colors.xml android/app/src/main/res/values/stock_icon_colors.xml
+
+          # Capacitor's generated Android 11-and-below launch theme still points
+          # to its default blue splash drawable. Redirect it to our branded art.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/src/main/res/values/styles.xml")
+          s = p.read_text()
+          old = "@drawable/splash"
+          new = "@drawable/stock_splash"
+          if old not in s:
+              raise SystemExit("Expected default @drawable/splash reference not found in styles.xml")
+          p.write_text(s.replace(old, new))
+          print("Verified: native launch theme now uses @drawable/stock_splash")
+          PY
       - name: Build debug APK
         working-directory: android
         run: |
