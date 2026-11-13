@@ -95,7 +95,7 @@ jobs:
           print("Application icon and launcher activity icon set to Stock Calculator assets.")
           print("Launcher activities:", ", ".join(launcher_activities))
           PY
-      - name: Set Recent Apps task icon explicitly
+      - name: Render adaptive launcher icon for Android Recent Apps
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -107,40 +107,63 @@ jobs:
 
           path = candidates[0]
           source = path.read_text()
-          class_pattern = r"(public class MainActivity extends BridgeActivity\s*\{)\s*\}"
-          match = re.search(class_pattern, source)
-          if not match and "setTaskDescription(" not in source:
-              raise SystemExit("Unexpected MainActivity structure; refusing an unsafe patch")
+          class_decl = "public class MainActivity extends BridgeActivity"
+          if class_decl not in source:
+              raise SystemExit("Unexpected MainActivity class; refusing unsafe replacement")
 
-          if "setTaskDescription(" not in source:
-              imports = """import android.app.ActivityManager;
-          import android.graphics.BitmapFactory;
-          import android.graphics.Color;
-          import android.os.Bundle;
-          """
-              package_end = source.find("\n")
-              if package_end < 0:
-                  raise SystemExit("Could not locate Java package declaration")
-              source = source[:package_end + 1] + imports + source[package_end + 1:]
+          # Keep package/import declarations, then replace the generated class body.
+          prefix = source[:source.index(class_decl)]
+          imports = [
+              "import android.app.ActivityManager;",
+              "import android.graphics.Bitmap;",
+              "import android.graphics.Canvas;",
+              "import android.graphics.Color;",
+              "import android.graphics.drawable.Drawable;",
+              "import android.os.Bundle;"
+          ]
+          for item in imports:
+              if item not in prefix:
+                  prefix += item + "\\n"
 
-              body = r"""\1
+          java_class = """public class MainActivity extends BridgeActivity {
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-                  android.graphics.Bitmap taskIcon = BitmapFactory.decodeResource(
-                      getResources(), R.mipmap.ic_launcher
+                  applyStockCalculatorTaskIcon();
+              }
+
+              @Override
+              public void onResume() {
+                  super.onResume();
+                  applyStockCalculatorTaskIcon();
+              }
+
+              private void applyStockCalculatorTaskIcon() {
+                  Drawable appIcon = getDrawable(R.mipmap.ic_launcher);
+                  if (appIcon == null) {
+                      appIcon = getApplicationInfo().loadIcon(getPackageManager());
+                  }
+                  if (appIcon == null) return;
+
+                  int size = Math.max(1, (int) (48 * getResources().getDisplayMetrics().density));
+                  Bitmap taskBitmap = Bitmap.createBitmap(
+                      size, size, Bitmap.Config.ARGB_8888
                   );
+                  Canvas canvas = new Canvas(taskBitmap);
+                  appIcon.setBounds(0, 0, size, size);
+                  appIcon.draw(canvas);
+
                   setTaskDescription(new ActivityManager.TaskDescription(
-                      "Stock Calculator", taskIcon, Color.rgb(23, 23, 47)
+                      "Stock Calculator",
+                      taskBitmap,
+                      Color.rgb(23, 23, 47)
                   ));
               }
-          }"""
-              source, count = re.subn(class_pattern, body, source, count=1)
-              if count != 1:
-                  raise SystemExit("Could not safely insert Recent Apps task icon code")
-              path.write_text(source)
-
-          print("Recent Apps task description now uses the Stock Calculator launcher icon.")
+          }
+          """
+          path.write_text(prefix + java_class)
+          print("Recent Apps icon is rendered from the adaptive Stock Calculator launcher drawable.")
+          print("Task icon is reapplied in both onCreate() and onResume().")
           PY
       - name: Build debug APK
         working-directory: android
