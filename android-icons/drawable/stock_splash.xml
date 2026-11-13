@@ -1,21 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="240dp"
-    android:height="240dp"
-    android:viewportWidth="240"
-    android:viewportHeight="240">
-    <!-- Compact Stock Calculator mark for the native launch screen -->
-    <path
-        android:fillColor="#20C997"
-        android:pathData="M42,139h28v57h-28z M91,105h28v91h-28z M140,66h28v130h-28z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M30,157l53,-43 31,16 65,-68 13,13 -74,77 -32,-16 -44,36z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M157,62h43v43h-12v-22l-24,24 -9,-9 24,-24h-22z" />
-    <!-- Small SC monogram accent -->
-    <path
-        android:fillColor="#20C997"
-        android:pathData="M69,218c-10,0 -17,-5 -19,-14l11,-4c1,5 4,7 8,7 4,0 6,-2 6,-5 0,-3 -2,-4 -8,-6 -10,-3 -15,-7 -15,-16 0,-9 7,-15 17,-15 9,0 15,4 17,12l-10,4c-1,-4 -3,-6 -7,-6 -4,0 -6,2 -6,5 0,3 2,4 8,6 10,3 15,7 15,16 0,10 -7,16 -17,16z M125,218c-13,0 -22,-10 -22,-26 0,-16 9,-27 23,-27 10,0 17,5 20,14l-11,5c-2,-5 -4,-8 -9,-8 -7,0 -11,6 -11,16 0,10 4,16 11,16 5,0 8,-3 10,-9l11,4c-3,10 -10,15 -22,15z" />
+    android:width="1dp"
+    android:height="1dp"
+    android:viewportWidth="1"
+    android:viewportHeight="1">
+    <!-- Intentionally blank: no splash artwork. -->
 </vector>
