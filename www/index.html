@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Calculator Pro - Kridha Indonesia</title>
+    <style>
+        /* Variabel CSS Dasar */
+        :root {
+            /* Variabel Background (Default Gelap) */
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a3a;
+            --bg-card: #262650;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #b8bcc8;
+            
+            /* Variabel Aksen (Default Biru/Ungu) */
+            --accent-blue: #4a9eff;
+            --accent-purple: #7c3aed;
+            
+            /* Variabel Tetap */
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.4);
+            /* Gradien sekunder disesuaikan dengan variabel aksen */
+            --gradient-secondary: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Styling Umum */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            /* FONT FIX: Menggunakan stack font sistem universal yang lebih rapi */
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header dan Judul */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-secondary);
+            opacity: 0.1;
+            border-radius: 24px;
+        }
+
+        .header-content {
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-icon {
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: var(--gradient-secondary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.025em;
+        }
+
+        /* Tombol Tema & Pengaturan (Fixed position) */
+        .theme-toggle, .settings-toggle {
+            position: fixed;
+            top: 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+        }
+
+        .theme-toggle { right: 30px; }
+        .settings-toggle { right: 170px; }
+        
+        /* Panel Pengaturan */
+        .settings-panel {
+            position: fixed;
+            top: 80px;
+            right: 30px;
+            width: 300px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow-hover);
+            z-index: 999;
+            display: none; 
+            flex-direction: column;
+            gap: 20px;
+            backdrop-filter: blur(8px);
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .settings-panel.open {
+            display: flex;
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .color-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .bg-swatch {
+            width: 45px;
+            height: 30px;
+            border-radius: 6px;
+            border: 3px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .hex-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .apply-hex-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent-blue);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .apply-hex-btn.pulse {
+            transform: scale(1.02);
+        }
+
+        /* --- Input Section --- */
+
+        .input-section {
+            background: var(--bg-secondary);
+            padding: 32px;
+            border-radius: 24px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+            letter-spacing: 0.025em;
+        }
+
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Penyesuaian untuk Input Fee agar menempati 2 kolom */
+        .fee-group {
+            grid-column: span 2;
+        }
+
+        .fee-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        /* --- Penataan Kotak 'Gunakan Fee' (Sejajar & Seragam) --- */
+        .checkbox-container {
+            /* Menyesuaikan padding agar tingginya sama dengan input[type="number"] */
+            padding: 16px 20px; 
+            height: 100%; 
+            display: flex;
+            align-items: center;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+        
+        .checkbox-container label {
+            /* Menghapus margin-bottom default agar sejajar di tengah */
+            margin-bottom: 0;
+        }
+        /* --- Akhir Penataan Kotak 'Gunakan Fee' --- */
+
+        .total-info {
+            margin-top: 24px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(74, 158, 255, 0.1), rgba(124, 58, 237, 0.1));
+            border: 1px solid rgba(74, 158, 255, 0.2);
+            border-radius: 16px;
+            text-align: center;
+        }
+        
+        .results-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 32px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* FIX: Membuat Hasil Perhitungan Muncul */
+        .results-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .table-container {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            /* Hapus height: fit-content; agar kotak memanjang mengikuti konten */
+        }
+
+        /* ALIGNMENT FIX 1: Memastikan Judul Header Tabel Terpusat */
+        .table-header {
+            padding: 16px 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: center; 
+        }
+
+        .loss-header {
+            color: white;
+            background: linear-gradient(135deg, var(--accent-red), #dc2626);
+        }
+
+        .profit-header {
+            color: white;
+            background: linear-gradient(135deg, var(--accent-green), #059669);
+        }
+
+        /* PERUBAHAN 1: Hapus Max-Height dan Overflow */
+        .table-wrapper {
+            /* max-height: 600px; */ /* Dihapus */
+            /* overflow-y: auto; */  /* Dihapus */
+            /* Pastikan tidak ada padding di sini yang mengganggu perataan */
+        }
+        
+        /* Tabel Utama */
+        .table {
+            width: 100%; /* Pastikan tabel mengisi container */
+            border-collapse: collapse;
+        }
+
+        /* ALIGNMENT & PROPORTIONAL FIX 2: Mengatur Lebar Kolom Header (th) */
+        .table th {
+            padding: 14px 12px;
+            text-align: center; 
+            font-weight: 700;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-secondary);
+            
+            /* PENGATURAN LEBAR PROPORSIIONAL */
+            width: 33.33%; /* Default, akan ditimpa di bawah */
+        }
+        
+        .table th:nth-child(1) { /* Kolom Harga */
+            width: 35%; 
+        }
+        
+        .table th:nth-child(2) { /* Kolom Hasil (Rp) */
+            width: 35%;
+        }
+        
+        .table th:nth-child(3) { /* Kolom Persentase (%) */
+            width: 30%; /* Lebih sempit */
+        }
+
+        /* HOVER EFFECT FIX 1: Efek saat kursor di atas baris */
+        .table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--bg-card); /* Warna latar belakang kartu */
+            transform: scale(1.01); /* Efek zoom tipis */
+        }
+
+        /* ALIGNMENT FIX 3: Mengatur perataan konten sel (td) */
+        .table td {
+            padding: 14px 12px;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .table td:nth-child(1) {
+            /* Kolom Harga: Tengah */
+            text-align: center;
+        }
+
+        .table td:nth-child(2), 
+        .table td:nth-child(3) {
+            /* PERUBAHAN 3: Kolom Hasil dan Persentase: Diubah ke Tengah */
+            text-align: center; 
+        }
+        
+        .loss-row td { color: var(--accent-red); }
+        .profit-row td { color: var(--accent-green); }
+
+        /* Warna hasil mengikuti tanda P/L, bukan sekadar sisi tabel.
+           Ini membuat PROFIT yang masih minus tetap merah, termasuk
+           harga, hasil (Rp), dan persentasenya. */
+        .negative-result-row td {
+            color: var(--accent-red) !important;
+        }
+
+        .positive-result-row td {
+            color: var(--accent-green) !important;
+        }
+
+        .neutral-result-row td {
+            color: var(--text-primary) !important;
+        }
+
+        /* --- Footer --- */
+        .footer-credit {
+            text-align: center;
+            margin-top: 48px;
+            padding: 24px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .footer-credit a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s ease; 
+            position: relative;
+        }
+
+        .footer-credit a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            background: var(--accent-blue);
+            transition: all 0.3s ease; 
+            transform: translateX(-50%);
+        }
+        
+        .footer-credit a:hover {
+            transform: translateY(-2px); 
+        }
+
+        .footer-credit a:hover::after {
+            width: 100%; 
+        }
+        /* --- Akhir Perbaikan Efek Hover Footer --- */
+        
+        /* Media Queries */
+        @media (max-width: 768px) {
+            .settings-toggle {
+                top: 16px;
+                right: 130px;
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+            .theme-toggle {
+                top: 16px;
+                right: 16px;
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+            .results-section {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .fee-group {
+                grid-column: span 1;
+            }
+
+            .fee-inputs {
+                grid-template-columns: 1fr;
+            }
+
+            /* Mengatur lebar kolom agar tidak terlalu sempit di layar kecil */
+            .table th:nth-child(1), /* Harga */
+            .table td:nth-child(1) { 
+                width: 33%; 
+            }
+            
+            .table th:nth-child(2), /* Hasil (Rp) */
+            .table td:nth-child(2) { 
+                width: 35%;
+            }
+            
+            .table th:nth-child(3), /* Persentase (%) */
+            .table td:nth-child(3) { 
+                width: 32%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Mode Gelap</button>
+    <button class="settings-toggle" onclick="toggleSettingsMenu()">⚙️ Pengaturan</button>
+
+    <div class="settings-panel" id="settingsPanel">
+        <h2>Pengaturan Tampilan</h2>
+        
+        <div class="setting-group">
+            <label>Warna Background Palet:</label>
+            <div class="color-options">
+                <button class="bg-swatch" style="background: #1a1a3a;" onclick="changeBackgroundTheme('#0f0f23', '#1a1a3a', '#262650')"></button>
+                <button class="bg-swatch" style="background: #333333;" onclick="changeBackgroundTheme('#202020', '#333333', '#444444')"></button>
+                <button class="bg-swatch" style="background: #1c1c1c;" onclick="changeBackgroundTheme('#0a0a0a', '#1c1c1c', '#2d2d2d')"></button>
+                <button class="bg-swatch" style="background: #334155;" onclick="changeBackgroundTheme('#1e293b', '#334155', '#475569')"></button>
+                <button class="bg-swatch" style="background: #18362d;" onclick="changeBackgroundTheme('#0c1a17', '#18362d', '#284d41')"></button>
+                <button class="bg-swatch" style="background: #4e4d4a;" onclick="changeBackgroundTheme('#3b3a37', '#4e4d4a', '#63625f')"></button>
+		<button class="bg-swatch" style="background: #5c1313;" onclick="changeBackgroundTheme('#3d0d0d', '#5c1313', '#7a1919')"></button>
+                <button class="bg-swatch" style="background: #3d2b27;" onclick="changeBackgroundTheme('#2d201d', '#3d2b27', '#523a35')"></button>
+            </div>
+        </div>
+        
+        <div class="setting-group">
+            <label>Warna Aksen Palet:</label>
+            <div class="color-options">
+                <button class="color-swatch" style="background: #4a9eff;" onclick="changeAccentColor('#4a9eff', '#7c3aed')"></button>
+                <button class="color-swatch" style="background: #10b981;" onclick="changeAccentColor('#10b981', '#059669')"></button>
+                <button class="color-swatch" style="background: #f59e0b;" onclick="changeAccentColor('#f59e0b', '#d97706')"></button>
+                <button class="color-swatch" style="background: #ef4444;" onclick="changeAccentColor('#ef4444', '#b91c1c')"></button>
+		<button class="color-swatch" style="background: #06b6d4;" onclick="changeAccentColor('#06b6d4', '#22d3ee')"></button>
+                <button class="color-swatch" style="background: #ec4899;" onclick="changeAccentColor('#ec4899', '#db2777')"></button>
+            </div>
+        </div>
+
+        <div class="setting-group hex-input-group">
+            <label>Kustom Kode HEX (otomatis tambahkan #):</label>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <input type="text" id="customBgHex" placeholder="Background Utama (cth: 1e293b)" class="hex-input">
+                <input type="text" id="customAccentHex" placeholder="Warna Aksen (cth: ff00ff)" class="hex-input">
+            </div>
+            <button onclick="applyCustomHex()" class="apply-hex-btn">Terapkan Kustom</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="header-icon">
+                    <rect width="24" height="24" rx="6" fill="url(#chartGradient)"/>
+                    <path d="M6 16L10 12L14 16L18 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="18" cy="8" r="2" fill="white"/>
+                    <defs>
+                        <linearGradient id="chartGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="var(--accent-blue)"/>
+                            <stop offset="1" stop-color="var(--accent-purple)"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1> Stock Calculator Pro</h1>
+                <p>Real-time profit & loss simulation for Indonesian stock market</p>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="buyPrice">Harga Beli (Rp)</label>
+                    <input type="number" id="buyPrice" placeholder="1000.1234" min="0.0001" step="0.0001">
+                </div>
+                <div class="input-group">
+                    <label for="lots">Jumlah Lot</label>
+                    <input type="number" id="lots" placeholder="100" min="1" step="1">
+                </div>
+                <div class="input-group">
+                    <label for="sellPrice">Harga Jual (Opsional)</label>
+                    <input type="number" id="sellPrice" placeholder="Auto" min="0.0001" step="0.0001">
+                </div>
+                <div class="input-group fee-group">
+                    <div class="fee-inputs">
+                        <div class="fee-input">
+                            <label for="buyFee">Fee Beli (%)</label>
+                            <input type="number" id="buyFee" value="0.19" step="0.01" min="0" max="10">
+                        </div>
+                        <div class="fee-input">
+                            <label for="sellFee">Fee Jual (%)</label>
+                            <input type="number" id="sellFee" value="0.29" step="0.01" min="0" max="10">
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="useFee" checked>
+                        <label for="useFee">Gunakan Fee</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="total-info" id="totalInfo" style="display: none;">
+                <p>Total Pembelian: <span id="totalBuy">Rp 0</span></p>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="table-container">
+                <div class="table-header loss-header">📉 LOSS SIMULATION</div>
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Harga</th>
+                                <th>Hasil (Rp)</th>
+                                <th>Persentase (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lossTable">
+                            <tr>
+                                <td colspan="3" class="empty-state">
+                                    <h3>Masukkan data untuk melihat simulasi</h3>
+                                    <p>Isi harga beli dan jumlah lot</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header profit-header">📈 PROFIT SIMULATION</div>
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Harga</th>
+                                <th>Hasil (Rp)</th>
+                                <th>Persentase (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="profitTable">
+                            <tr>
+                                <td colspan="3" class="empty-state">
+                                    <h3>Masukkan data untuk melihat simulasi</h3>
+                                    <p>Isi harga beli dan jumlah lot</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-credit">
+            <p>by: <a href="https://wa.me/6282235228898" target="_blank">kridhaindonesia</a></p>
+        </div>
+    </div>
+
+    <script>
+        let isLight = false;
+        let calculationTimeout;
+        const HEX_REGEX = /^#([0-9A-F]{3}){1,2}$/i; 
+
+        function toggleSettingsMenu() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('open');
+        }
+
+        function changeBackgroundTheme(primaryBg, secondaryBg, cardBg) {
+            const root = document.documentElement;
+            document.body.removeAttribute('data-theme');
+            root.style.setProperty('--bg-primary', primaryBg);
+            root.style.setProperty('--bg-secondary', secondaryBg);
+            root.style.setProperty('--bg-card', cardBg);
+            
+            root.style.setProperty('--text-primary', '#ffffff');
+            root.style.setProperty('--text-secondary', '#b8bcc8');
+            root.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.1)');
+            
+            isLight = false;
+            document.querySelector('.theme-toggle').textContent = '🌙 Mode Gelap';
+        }
+
+        function changeAccentColor(primaryColor, secondaryColor) {
+            const root = document.documentElement;
+            const finalSecondary = secondaryColor || primaryColor; 
+            
+            root.style.setProperty('--accent-blue', primaryColor);
+            root.style.setProperty('--accent-purple', finalSecondary);
+            root.style.setProperty('--gradient-secondary', `linear-gradient(135deg, ${primaryColor} 0%, ${finalSecondary} 100%)`);
+            
+        }
+
+        function applyCustomHex() {
+            let bgHexInput = document.getElementById('customBgHex').value.trim();
+            let accentHexInput = document.getElementById('customAccentHex').value.trim();
+            
+            if (bgHexInput && bgHexInput.charAt(0) !== '#') {
+                bgHexInput = '#' + bgHexInput;
+            }
+            if (accentHexInput && accentHexInput.charAt(0) !== '#') {
+                accentHexInput = '#' + accentHexInput;
+            }
+            
+            let applied = false;
+
+            if (bgHexInput && HEX_REGEX.test(bgHexInput)) {
+                const rootStyle = getComputedStyle(document.documentElement);
+                const currentSecondary = rootStyle.getPropertyValue('--bg-secondary').trim();
+                const currentCard = rootStyle.getPropertyValue('--bg-card').trim();
+                
+                changeBackgroundTheme(bgHexInput, currentSecondary, currentCard);
+                applied = true;
+            } else if (bgHexInput) {
+                alert('Format Kode HEX Background tidak valid. Gunakan format RRGGBB atau RGB.');
+                return;
+            }
+
+            if (accentHexInput && HEX_REGEX.test(accentHexInput)) {
+                changeAccentColor(accentHexInput, accentHexInput);
+                applied = true;
+            } else if (accentHexInput) {
+                alert('Format Kode HEX Aksen tidak valid. Gunakan format RRGGBB atau RGB.');
+                return;
+            }
+            
+            if (applied) {
+                document.getElementById('customBgHex').value = '';
+                document.getElementById('customAccentHex').value = '';
+                document.getElementById('settingsPanel').classList.remove('open');
+            } else {
+                 alert('Masukkan setidaknya satu Kode HEX yang valid untuk diterapkan.');
+            }
+        }
+        
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.querySelector('.theme-toggle');
+            const root = document.documentElement;
+
+            if (isLight) {
+                body.removeAttribute('data-theme');
+                themeToggle.textContent = '🌙 Mode Gelap';
+                isLight = false;
+                
+                root.style.removeProperty('--bg-primary');
+                root.style.removeProperty('--bg-secondary');
+                root.style.removeProperty('--bg-card');
+
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeToggle.textContent = '☀️ Mode Terang';
+                isLight = true;
+                
+                root.style.removeProperty('--bg-primary');
+                root.style.removeProperty('--bg-secondary');
+                root.style.removeProperty('--bg-card');
+            }
+        }
+
+        // ================================================================
+        // MESIN TICK HARGA
+        // ================================================================
+        // Harga referensi (Avg Beli / Harga Jual) boleh berupa angka apa pun.
+        // Yang mengikuti aturan tick adalah HARGA BERIKUTNYA di tabel.
+        // Pola ini mengikuti hasil pengujian screenshot aplikasi pembanding:
+        // <200: 1 | 200-499: 2 | 500-1999: 5 | 2000-4999: 10 | >=5000: 25
+        // dengan transisi khusus: 199->200, 499->500, 1999->2000, 4999->5000.
+
+        // ================================================================
+        // MESIN TICK HARGA
+        // ================================================================
+        // Penting: harga input (Avg Beli / Harga Jual) boleh menjadi harga
+        // referensi seperti 199, 499, 1999, atau 4999. Harga-harga tersebut
+        // TIDAK dipaksa masuk ke grid. Mesin hanya mencari harga valid
+        // berikutnya/sebelumnya dari referensi tersebut.
+        //
+        // Pola yang digunakan berdasarkan pengujian aplikasi pembanding:
+        // < 200       : tick 1
+        // 200-499     : tick 2
+        // 500-1999    : tick 5
+        // 2000-4999   : tick 10
+        // >= 5000     : tick 25
+        //
+        // Transisi batas adalah khusus:
+        // 199 -> 200, 499 -> 500, 1999 -> 2000, 4999 -> 5000.
+        // Arah turun juga mempunyai transisi khusus:
+        // 200 -> 199, 500 -> 498, 2000 -> 1995, 5000 -> 4990.
+
+        function getFraction(price) {
+            price = Number(price);
+            if (!Number.isFinite(price)) return NaN;
+            if (price < 200) return 1;
+            if (price < 500) return 2;
+            if (price < 2000) return 5;
+            if (price < 5000) return 10;
+            return 25;
+        }
+
+        function cleanReferencePrice(price) {
+            price = Number(price);
+            if (!Number.isFinite(price) || price <= 0) return NaN;
+            // Harga saham pada kalkulator ini diperlakukan sebagai integer.
+            return Math.round(price);
+        }
+
+        // Cari harga valid pertama yang lebih tinggi dari harga referensi.
+        function getNextTickPrice(price) {
+            price = cleanReferencePrice(price);
+            if (!Number.isFinite(price)) return NaN;
+
+            if (price < 199) return price + 1;
+            if (price === 199) return 200;
+
+            // 200-499: grid genap, dengan 499 -> 500.
+            if (price < 500) {
+                if (price >= 498) return 500;
+                return price + (price % 2 === 0 ? 2 : 1);
+            }
+
+            // 500-1999: kelipatan 5 dari 500, dengan 1999 -> 2000.
+            if (price < 2000) {
+                if (price >= 1995) return 2000;
+                const remainder = (price - 500) % 5;
+                return remainder === 0 ? price + 5 : price + (5 - remainder);
+            }
+
+            // 2000-4999: kelipatan 10 dari 2000, dengan 4999 -> 5000.
+            if (price < 5000) {
+                if (price >= 4990) return 5000;
+                const remainder = (price - 2000) % 10;
+                return remainder === 0 ? price + 10 : price + (10 - remainder);
+            }
+
+            // >= 5000: kelipatan 25 dari 5000.
+            const remainder = (price - 5000) % 25;
+            return remainder === 0 ? price + 25 : price + (25 - remainder);
+        }
+
+        // Cari harga valid pertama yang lebih rendah dari harga referensi.
+        function getPreviousTickPrice(price) {
+            price = cleanReferencePrice(price);
+            if (!Number.isFinite(price)) return NaN;
+
+            // < 200: tick 1. 200 -> 199.
+            if (price <= 200) return price - 1;
+
+            // 200-499: grid genap. 499 -> 498; 498 -> 496.
+            if (price < 500) {
+                if (price === 499) return 498;
+                return price - (price % 2 === 0 ? 2 : 1);
+            }
+
+            // 500-1999: 500 -> 498, lalu grid kelipatan 5.
+            if (price < 2000) {
+                if (price === 500) return 498;
+                const remainder = (price - 500) % 5;
+                return remainder === 0 ? price - 5 : price - remainder;
+            }
+
+            // 2000-4999: 2000 -> 1995, lalu grid kelipatan 10.
+            if (price < 5000) {
+                if (price === 2000) return 1995;
+                const remainder = (price - 2000) % 10;
+                return remainder === 0 ? price - 10 : price - remainder;
+            }
+
+            // >= 5000: 5000 -> 4990, lalu grid kelipatan 25.
+            if (price === 5000) return 4990;
+            const remainder = (price - 5000) % 25;
+            return remainder === 0 ? price - 25 : price - remainder;
+        }
+
+        // Harga referensi tidak dinormalisasi ke grid tick.
+        function normalizePrice(price, direction = 'nearest') {
+            return cleanReferencePrice(price);
+        }
+
+        function getStartLossPrice(buyPrice) {
+            // Baris pertama LOSS selalu menampilkan harga referensi (harga beli),
+            // lalu baris berikutnya bergerak ke harga valid sebelumnya.
+            return cleanReferencePrice(buyPrice);
+        }
+
+        function getStartProfitPrice(buyPrice) {
+            return getNextTickPrice(buyPrice);
+        }
+
+        // ================================================================
+        // END MESIN TICK HARGA
+        // ================================================================
+
+        // Pemeriksaan internal mesin tick. Tidak mengubah UI; hanya menjaga agar
+        // regresi pada titik batas mudah terdeteksi melalui console browser.
+        function selfTestTickEngine() {
+            const expected = {
+                199: { loss:[199,198,197,196,195], profit:[200,202,204,206,208] },
+                200: { loss:[200,199,198,197,196], profit:[202,204,206,208,210] },
+                499: { loss:[499,498,496,494,492], profit:[500,505,510,515,520] },
+                500: { loss:[500,498,496,494,492], profit:[505,510,515,520,525] },
+                1999:{ loss:[1999,1995,1990,1985,1980], profit:[2000,2010,2020,2030,2040] },
+                2000:{ loss:[2000,1995,1990,1985,1980], profit:[2010,2020,2030,2040,2050] },
+                4999:{ loss:[4999,4990,4980,4970,4960], profit:[5000,5025,5050,5075,5100] },
+                5000:{ loss:[5000,4990,4980,4970,4960], profit:[5025,5050,5075,5100,5125] }
+            };
+            const same = (a,b) => a.length === b.length && a.every((v,i)=>v === b[i]);
+            for (const [key, exp] of Object.entries(expected)) {
+                const base = Number(key), loss=[], profit=[];
+                let p=base;
+                for(let i=0;i<5;i++){ loss.push(p); p=getPreviousTickPrice(p); }
+                p=getNextTickPrice(base);
+                for(let i=0;i<5;i++){ profit.push(p); p=getNextTickPrice(p); }
+                if(!same(loss,exp.loss) || !same(profit,exp.profit)) {
+                    console.error('Tick engine self-test FAILED at', base, {loss,profit,expected:exp});
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Format angka ke mata uang Indonesia.
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(Math.round(amount));
+        }
+
+        // Harga saham selalu ditampilkan persis sebagai integer yang dihitung.
+        function formatPrice(price) {
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(Math.round(price));
+        }
+
+        function calculateTotalCost(price, lots, buyFeePercent) {
+            const totalShares = lots * 100;
+            const grossAmount = price * totalShares;
+            const buyFee = grossAmount * (buyFeePercent / 100);
+            return grossAmount + buyFee;
+        }
+
+        function calculateNetProceeds(price, lots, sellFeePercent) {
+            const totalShares = lots * 100;
+            const grossAmount = price * totalShares;
+            const sellFee = grossAmount * (sellFeePercent / 100);
+            return grossAmount - sellFee;
+        }
+
+        function createResultRow(table, price, result, percentage, rowClass) {
+            const row = table.insertRow();
+
+            // Warna ditentukan oleh hasil bersih aktual.
+            // Jika PROFIT masih minus karena fee, seluruh baris tetap merah.
+            let resultClass = 'neutral-result-row';
+            if (result < 0) {
+                resultClass = 'negative-result-row';
+            } else if (result > 0) {
+                resultClass = 'positive-result-row';
+            }
+
+            row.className = rowClass + ' ' + resultClass;
+            row.insertCell(0).textContent = formatPrice(price);
+            row.insertCell(1).textContent = 'Rp ' + formatCurrency(result);
+            row.insertCell(2).textContent = percentage.toFixed(2) + '%';
+            return row;
+        }
+
+        function generateLossTable(buyPrice, lots, totalInvestment, sellFee, useFee, sellPriceInput) {
+            const lossTable = document.getElementById('lossTable');
+            lossTable.innerHTML = '';
+            const MAX_ROWS = 25;
+
+            if (Number.isFinite(sellPriceInput) && sellPriceInput > 0) {
+                const exactPrice = normalizePrice(sellPriceInput, 'nearest');
+                const exactNetProceeds = useFee
+                    ? calculateNetProceeds(exactPrice, lots, sellFee)
+                    : exactPrice * lots * 100;
+                const exactResult = exactNetProceeds - totalInvestment;
+                const exactPercentage = (exactResult / totalInvestment) * 100;
+                const exactRow = lossTable.insertRow();
+
+                // Tetap pertahankan identitas sisi tabel, tetapi warna P/L
+                // mengikuti hasil aktual. Jika hasil negatif, seluruh sel merah.
+                const sideClass = exactPrice <= buyPrice ? 'loss-row' : 'profit-row';
+                const resultClass = exactResult < 0
+                    ? 'negative-result-row'
+                    : exactResult > 0
+                        ? 'positive-result-row'
+                        : 'neutral-result-row';
+
+                exactRow.className = sideClass + ' ' + resultClass;
+                exactRow.style.backgroundColor = 'rgba(74, 158, 255, 0.2)';
+                exactRow.style.fontWeight = 'bold';
+                exactRow.insertCell(0).textContent = formatPrice(exactPrice) + ' ✓';
+                exactRow.insertCell(1).textContent = 'Rp ' + formatCurrency(exactResult);
+                exactRow.insertCell(2).textContent = exactPercentage.toFixed(2) + '%';
+
+                // Dari harga jual, turun mengikuti tick yang benar dan berubah otomatis
+                // ketika melewati batas rentang harga.
+                let currentPrice = getPreviousTickPrice(exactPrice);
+                while (currentPrice > 0 && lossTable.rows.length < MAX_ROWS) {
+                    const netProceeds = useFee
+                        ? calculateNetProceeds(currentPrice, lots, sellFee)
+                        : currentPrice * lots * 100;
+                    const result = netProceeds - totalInvestment;
+                    const percentage = (result / totalInvestment) * 100;
+                    createResultRow(lossTable, currentPrice, result, percentage, 'loss-row');
+                    currentPrice = getPreviousTickPrice(currentPrice);
+                }
+                return;
+            }
+
+            // Tanpa harga jual: LOSS dimulai tepat satu tick di bawah harga beli.
+            let currentPrice = getStartLossPrice(buyPrice);
+            while (currentPrice > 0 && lossTable.rows.length < MAX_ROWS) {
+                const netProceeds = useFee
+                    ? calculateNetProceeds(currentPrice, lots, sellFee)
+                    : currentPrice * lots * 100;
+                const result = netProceeds - totalInvestment;
+                const percentage = (result / totalInvestment) * 100;
+                createResultRow(lossTable, currentPrice, result, percentage, 'loss-row');
+                currentPrice = getPreviousTickPrice(currentPrice);
+            }
+        }
+
+        function generateProfitTable(buyPrice, lots, totalInvestment, sellFee, useFee, sellPriceInput) {
+            const profitTable = document.getElementById('profitTable');
+            profitTable.innerHTML = '';
+            const MAX_ROWS = 25;
+
+            if (Number.isFinite(sellPriceInput) && sellPriceInput > 0) {
+                let currentPrice = getNextTickPrice(normalizePrice(sellPriceInput, 'nearest'));
+
+                for (let i = 0; i < MAX_ROWS && currentPrice > 0; i++) {
+                    const netProceeds = useFee
+                        ? calculateNetProceeds(currentPrice, lots, sellFee)
+                        : currentPrice * lots * 100;
+                    const result = netProceeds - totalInvestment;
+                    const percentage = (result / totalInvestment) * 100;
+                    createResultRow(profitTable, currentPrice, result, percentage, 'profit-row');
+                    currentPrice = getNextTickPrice(currentPrice);
+                }
+                return;
+            }
+
+            // Tanpa harga jual: PROFIT dimulai tepat satu tick di atas harga beli.
+            let currentPrice = getStartProfitPrice(buyPrice);
+            const normalizedBuy = normalizePrice(buyPrice, 'nearest');
+            const maxPrice = normalizedBuy * 1.5;
+
+            while (currentPrice <= maxPrice && profitTable.rows.length < MAX_ROWS) {
+                const netProceeds = useFee
+                    ? calculateNetProceeds(currentPrice, lots, sellFee)
+                    : currentPrice * lots * 100;
+                const result = netProceeds - totalInvestment;
+                const percentage = (result / totalInvestment) * 100;
+                createResultRow(profitTable, currentPrice, result, percentage, 'profit-row');
+                currentPrice = getNextTickPrice(currentPrice);
+            }
+        }
+
+        // Self-test aturan warna P/L.
+        function getResultColorClass(result) {
+            if (result < 0) return 'negative-result-row';
+            if (result > 0) return 'positive-result-row';
+            return 'neutral-result-row';
+        }
+
+        console.assert(getResultColorClass(-1) === 'negative-result-row', 'Color test: negative');
+        console.assert(getResultColorClass(1) === 'positive-result-row', 'Color test: positive');
+        console.assert(getResultColorClass(0) === 'neutral-result-row', 'Color test: zero');
+
+        // Real-time calculation function
+        function calculateRealtime() {
+            const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+            const lots = parseInt(document.getElementById('lots').value);
+            const sellPriceRaw = document.getElementById('sellPrice').value.trim();
+            const sellPriceParsed = parseFloat(sellPriceRaw);
+            const sellPrice = Number.isFinite(sellPriceParsed) && sellPriceParsed > 0 ? sellPriceParsed : NaN;
+            const buyFee = parseFloat(document.getElementById('buyFee').value) || 0;
+            const sellFee = parseFloat(document.getElementById('sellFee').value) || 0;
+            const useFee = document.getElementById('useFee').checked;
+
+            // Tolak nilai fee yang tidak masuk akal meskipun input HTML dimanipulasi.
+            if (!Number.isFinite(buyFee) || !Number.isFinite(sellFee) || buyFee < 0 || sellFee < 0 || buyFee > 10 || sellFee > 10) {
+                document.getElementById('totalInfo').style.display = 'none';
+                document.getElementById('resultsSection').classList.remove('visible');
+                return;
+            }
+            
+            if (calculationTimeout) {
+                clearTimeout(calculationTimeout);
+            }
+
+            calculationTimeout = setTimeout(() => {
+                if (!buyPrice || !lots || buyPrice <= 0 || lots <= 0) {
+                    document.getElementById('totalInfo').style.display = 'none';
+                    document.getElementById('resultsSection').classList.remove('visible'); 
+                    
+                    const emptyStateHtml = `
+                        <tr>
+                            <td colspan="3" class="empty-state">
+                                <h3>Masukkan data untuk melihat simulasi</h3>
+                                <p>Isi harga beli dan jumlah lot</p>
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('lossTable').innerHTML = emptyStateHtml;
+                    document.getElementById('profitTable').innerHTML = emptyStateHtml;
+                    return;
+                }
+
+                const totalInvestment = useFee ?
+                calculateTotalCost(buyPrice, lots, buyFee) : buyPrice * lots * 100;
+                
+                document.getElementById('totalBuy').textContent = 'Rp ' + new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(totalInvestment));
+                document.getElementById('totalInfo').style.display = 'block';
+
+                generateLossTable(buyPrice, lots, totalInvestment, sellFee, useFee, sellPrice);
+                generateProfitTable(buyPrice, lots, totalInvestment, sellFee, useFee, sellPrice);
+
+                document.getElementById('resultsSection').classList.add('visible');
+            }, 300);
+        }
+
+        // Event listeners
+        selfTestTickEngine();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = ['buyPrice', 'lots', 'sellPrice', 'buyFee', 'sellFee'];
+            inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', calculateRealtime);
+            });
+            
+            document.getElementById('useFee').addEventListener('change', calculateRealtime);
+            const customBgHexInput = document.getElementById('customBgHex');
+    const customAccentHexInput = document.getElementById('customAccentHex');
+    const applyButton = document.querySelector('.apply-hex-btn'); 
+
+    function handleHexInputKeyPress(event) {
+        if (event.key === 'Enter') { 
+            event.preventDefault(); 
+            applyCustomHex();
+            applyButton.classList.add('pulse');
+            setTimeout(() => {
+                applyButton.classList.remove('pulse');
+            }, 500);
+        }
+    }
+
+    if (customBgHexInput) {
+        customBgHexInput.addEventListener('keypress', handleHexInputKeyPress);
+    }
+    
+    if (customAccentHexInput) {
+        customAccentHexInput.addEventListener('keypress', handleHexInputKeyPress);
+    }
+	// Fungsi yang menutup panel jika klik di luar
+	function closeSettingsOnClickOutside(event) {
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsToggle = document.querySelector('.settings-toggle');
+
+    	// Cek apakah panel terbuka
+    if (settingsPanel.classList.contains('open')) {
+    	// Cek apakah klik BUKAN di dalam panel DAN BUKAN pada tombol toggle itu sendiri
+    if (!settingsPanel.contains(event.target) && !settingsToggle.contains(event.target)) {
+        settingsPanel.classList.remove('open');
+        }
+    }
+}
+            calculateRealtime();
+        });
+        
+        window.addEventListener('load', function() {
+            document.getElementById('buyPrice').focus();
+        });
+    </script>
+</body>
+</html>
