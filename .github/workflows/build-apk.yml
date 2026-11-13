@@ -121,7 +121,7 @@ jobs:
                   raise SystemExit("Could not locate Java package declaration")
               source = source[:package_end + 1] + imports + source[package_end + 1:]
 
-              body = """\1
+              body = r"""\1
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
