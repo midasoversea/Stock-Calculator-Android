@@ -83,6 +83,8 @@ jobs:
               if has_launcher:
                   activity.set(ns + "icon", "@mipmap/ic_launcher")
                   activity.set(ns + "roundIcon", "@mipmap/ic_launcher_round")
+                  # Do not show the Android keyboard until the user taps an input.
+                  activity.set(ns + "windowSoftInputMode", "stateAlwaysHidden|adjustResize")
                   launcher_activities.append(activity.get(ns + "name", "(unnamed)"))
 
           if not launcher_activities:
