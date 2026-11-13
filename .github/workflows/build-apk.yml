@@ -97,6 +97,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           candidates = list(Path("android/app/src/main/java").rglob("MainActivity.java"))
           if len(candidates) != 1:
@@ -104,8 +105,9 @@ jobs:
 
           path = candidates[0]
           source = path.read_text()
-          class_marker = "public class MainActivity extends BridgeActivity {"
-          if class_marker not in source:
+          class_pattern = r"(public class MainActivity extends BridgeActivity\\s*\\{)\\s*\\}"
+          match = re.search(class_pattern, source)
+          if not match and "setTaskDescription(" not in source:
               raise SystemExit("Unexpected MainActivity structure; refusing an unsafe patch")
 
           if "setTaskDescription(" not in source:
@@ -118,7 +120,8 @@ jobs:
               if package_end < 0:
                   raise SystemExit("Could not locate Java package declaration")
               source = source[:package_end + 1] + imports + source[package_end + 1:]
-              body = """public class MainActivity extends BridgeActivity {
+
+              body = """\\1
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
@@ -130,8 +133,11 @@ jobs:
                   ));
               }
           }"""
-              source = source.replace(class_marker + "}", body)
+              source, count = re.subn(class_pattern, body, source, count=1)
+              if count != 1:
+                  raise SystemExit("Could not safely insert Recent Apps task icon code")
               path.write_text(source)
+
           print("Recent Apps task description now uses the Stock Calculator launcher icon.")
           PY
       - name: Build debug APK
