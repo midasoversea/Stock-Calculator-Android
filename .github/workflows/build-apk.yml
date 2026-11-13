@@ -123,7 +123,7 @@ jobs:
           ]
           for item in imports:
               if item not in prefix:
-                  prefix += item + "\\n"
+                  prefix += item + chr(10)
 
           java_class = """public class MainActivity extends BridgeActivity {
               @Override
